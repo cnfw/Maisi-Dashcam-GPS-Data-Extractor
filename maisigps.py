@@ -1,6 +1,9 @@
 import sys
 import xml.etree.cElementTree as ET
 
+"""
+A work in progress
+"""
 
 def main():
     if len(sys.argv) <= 1:
@@ -13,7 +16,7 @@ def main():
 
     # Set up root element
     gpx = ET.Element("gpx", {'version': '1.1',
-                             'creator': 'Maisi Dashcam GPS Data Extractor - <github url>',
+                             'creator': 'Maisi Dashcam GPS Data Extractor - https://github.com/cw1998/MaisiDashcamGPSDataExtractor',
                              'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
                              'xmlns': 'http://www.topografix.com/GPX/1/1'})
 
