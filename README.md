@@ -10,17 +10,15 @@ Follow the instructions for usage of the script. I will include sample data and 
 ### Prerequisites
 
 * Python 3
-* SRT File extracted from the Dashcam video file (this can be done using [YAMB](http://yamb.unite-video.com/) on Windows)
+* ffmpeg (installed for system wide access, or binary in same path as script if not installed)
 
 ### Usage
 
-```
-maisigps.py <filename.srt>
-```
+See ```-h``` or ```--help```
 
 ### Output
 
-The script will output a GPX file with the same name as your SRT file in the same directory the SRT file came from.
+The script will output a GPX file (or files) with the same name as the video file in the same directory the file came from (or in a directory called gpx if batch processing videos).
 
 ## Future Development Plans / TODO list
 
