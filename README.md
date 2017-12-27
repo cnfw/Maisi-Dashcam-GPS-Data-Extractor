@@ -28,5 +28,3 @@ What I hope to add to the script in the future
    * Specify output location
    * Specify output format (other than GPX)
    * Option to embed speed data (included by default)
-* Batch process an entire directory of SRT files
-   * Option to join files together into one large GPX (due to the dashcam splitting video into 5 minute chunks)

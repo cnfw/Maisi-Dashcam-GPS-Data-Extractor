@@ -17,8 +17,10 @@ def main():
 
     # If path is a file, go work with it
     if path.isfile(file_path):
-        extract_srt_file(file_path)
-        process_srt_file(file_path)
+        extract_srt_file(file_path, path.dirname(file_path))
+        root = setup_gpx_root(file_path[:-4] + '.srt')
+        add_track_to_root(root, file_path[:-4] + '.srt')
+        generate_tree_and_write_file(root, file_path[:-4] + '.srt')
 
     elif path.isdir(file_path):
         srt_directory = file_path + '\\' + 'srt'
@@ -33,9 +35,22 @@ def main():
             extract_srt_file(file_path + '\\' + file, srt_directory)
         print('\rFinished extracting data from videos.')
         # Do these separately in case of any failures in the extraction process
+
+        root = setup_gpx_root(file_path + '_join.gpx')
+        join_count = 1
         for file in listdir(srt_directory):
             print('\rCreating GPX files.', end='  ')
-            process_srt_file(srt_directory + '\\' + file, gpx_directory)
+            if not values.join:
+                root = setup_gpx_root(srt_directory + '\\' + file)
+            add_track_to_root(root, srt_directory + '\\' + file, track_number=join_count)
+            if values.join:
+                join_count += 1
+                continue
+            generate_tree_and_write_file(root, srt_directory + '\\' + file, gpx_directory)
+
+        if values.join:
+            generate_tree_and_write_file(root, file_path + '_join.gpx', gpx_directory)
+
         print('\rGPX files created in ' + gpx_directory)
     else:
         print('Invalid file or directory supplied. Check that the file or directory exists.')
@@ -46,7 +61,7 @@ def extract_srt_file(file_path, output_dir):
           '-loglevel', 'quiet'])
 
 
-def process_srt_file(file_path, output_dir=None):
+def setup_gpx_root(file_path):
 
     # Set up root element
     gpx = ET.Element("gpx", {'version': '1.1',
@@ -57,11 +72,13 @@ def process_srt_file(file_path, output_dir=None):
 
     # Give the GPX file a name
     ET.SubElement(gpx, "name").text = path.basename(file_path)
+    return gpx
 
-    # Set up track
-    track = ET.SubElement(gpx, "trk")
+
+def add_track_to_root(root, file_path, track_number=1):
+    track = ET.SubElement(root, "trk")
     ET.SubElement(track, "name").text = path.basename(file_path)
-    ET.SubElement(track, "number").text = "1"
+    ET.SubElement(track, "number").text = str(track_number)
 
     """
     Maisi Dashcam SRT structure
@@ -89,7 +106,9 @@ def process_srt_file(file_path, output_dir=None):
         print(e)
         return
 
-    tree = ET.ElementTree(gpx)
+
+def generate_tree_and_write_file(root, file_path, output_dir=None):
+    tree = ET.ElementTree(root)
     output_name = file_path if output_dir is None else output_dir + '\\' + path.basename(file_path)
     tree.write(output_name[:-4] + ".gpx")
 
@@ -104,8 +123,8 @@ def get_data_from_line(input_line):
 
     # gps_speed in GPX files are stored in meters per second, so this needs converted.
     return {'gps_time': data[:19].replace(" ", "T") + ".000Z",
-            'gps_lat': data.split('-', 3)[-1][:10],
-            'gps_lon': data.split('-', 4)[-1][:10],
+            'gps_lat': data.split('-', 3)[-1][1:10],
+            'gps_lon': data.split('-', 4)[-1][1:10],
             'gps_speed': float(data.split('S', 2)[-1]) * 0.44704}
 
 
@@ -126,7 +145,7 @@ def print_header():
     print("from Maisi (and similar) dashcams")
     print("========================================")
     print("Title: Maisi GPS Data Extractor")
-    print("Version: 0.1")
+    print("Version: 0.2")
     print("Author: Christopher Wilkinson")
     print("Date: 12/12/17")
     print("Description: Extracts GPS data from")
@@ -145,6 +164,8 @@ def setup_parser():
     parser.add_argument('path', help='File path or a directory of files for bulk extraction')
     parser.add_argument('-o', '--output', dest='output',
                         help='Custom output directory (Defaults to same directory as source file)')
+    parser.add_argument('-j', '--join', action='store_true', default=False, dest='join',
+                        help='Creates one large GPX file from a directory of source files')
 
     return parser
 
